@@ -39,6 +39,7 @@ type Driver struct {
 	CaCertPath      string
 	SSHKeyID        string
 	UserDataFile    string
+	IPXEScriptURL		string
 	SpotInstance    bool
 	SpotPriceMax    float64
 	TerminationTime *packngo.Timestamp
@@ -70,7 +71,7 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 		mcnflag.StringFlag{
 			Name:   "packet-os",
 			Usage:  "Packet OS",
-			Value:  "ubuntu_16_04",
+			Value:  "custom_ipxe",
 			EnvVar: "PACKET_OS",
 		},
 		mcnflag.StringFlag{
@@ -95,6 +96,11 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 			Name:   "packet-userdata",
 			Usage:  "Path to file with cloud-init user-data",
 			EnvVar: "PACKET_USERDATA",
+		},
+		mcnflag.StringFlag{
+			Name:   "packet-ipxescripturl",
+			Usage:  "URL to ipxe file",
+			EnvVar: "PACKET_IPXESCRIPTURL",
 		},
 		mcnflag.BoolFlag{
 			Name:   "packet-spot-instance",
@@ -132,6 +138,7 @@ func (d *Driver) SetConfigFromFlags(flags drivers.DriverOptions) error {
 	d.Facility = flags.String("packet-facility-code")
 	d.BillingCycle = flags.String("packet-billing-cycle")
 	d.UserDataFile = flags.String("packet-userdata")
+	d.IPXEScriptURL = flags.String("packet-ipxescripturl")
 
 	d.Plan = flags.String("packet-plan")
 
@@ -237,6 +244,7 @@ func (d *Driver) Create() error {
 		BillingCycle: d.BillingCycle,
 		ProjectID:    d.ProjectID,
 		UserData:     userdata,
+		IPXEScriptURL: d.IPXEScriptURL,
 		Tags:         d.Tags,
 		SpotInstance: d.SpotInstance,
 		SpotPriceMax: -1,
@@ -420,6 +428,7 @@ func (d *Driver) getOsFlavors() ([]string, error) {
 		"opensuse",
 		"rancher",
 		"ubuntu",
+		"custom_ipxe",
 	}
 	flavors := make([]string, 0, len(operatingSystems))
 	for _, flavor := range operatingSystems {
